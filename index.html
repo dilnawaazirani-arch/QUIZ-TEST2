@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEFR Vocabulary Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb; --primary-dark: #1e40af; --success: #10b981;
+            --error: #ef4444; --bg-light: #f8fafc; --bg-white: #ffffff;
+            --text-dark: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.07); --shadow-lg: 0 20px 25px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            min-height: 100vh; padding: 20px; color: var(--text-dark);
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 {
+            font-size: 2.5em; font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .progress-bar { width: 100%; height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #3b82f6); transition: width 0.4s ease; }
+        .question-container { background: var(--bg-white); border-radius: 16px; padding: 30px; box-shadow: var(--shadow-lg); margin-bottom: 30px; }
+        .word-main { font-size: 1.8em; font-weight: 700; margin-bottom: 8px; }
+        .word-label { font-size: 0.9em; color: var(--text-muted); margin-bottom: 25px; font-style: italic; }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option {
+            padding: 16px 18px; border: 2px solid var(--border); border-radius: 12px;
+            cursor: pointer; transition: all 0.3s ease; background: var(--bg-light);
+        }
+        .option:hover:not(.disabled) { border-color: var(--primary); background: #eff6ff; }
+        .option.correct { background: #ecfdf5; border-color: var(--success); color: var(--success); font-weight: 600; }
+        .option.incorrect { background: #fef2f2; border-color: var(--error); color: var(--error); font-weight: 600; }
+        .results-container { background: var(--bg-white); border-radius: 16px; padding: 40px 30px; box-shadow: var(--shadow-lg); text-align: center; }
+        .score-circle { width: 100px; height: 100px; margin: 20px auto; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 2em; font-weight: 700; }
+        .cefr-level { font-size: 2.5em; font-weight: 700; margin: 15px 0; padding: 10px 25px; border-radius: 12px; display: inline-block; }
+        .cefr-a1 { background: #fef3c7; color: #92400e; } .cefr-b1 { background: #dbeafe; color: #0c2340; } .cefr-c { background: #f3e8ff; color: #5b21b6; }
+        .btn-group { margin-top: 30px; display: flex; gap: 15px; justify-content: center; }
+        .restart-button, .continue-button {
+            padding: 14px 30px; border-radius: 10px; font-weight: 600; cursor: pointer; text-decoration: none; border: none;
+        }
+        .restart-button { background: #64748b; color: white; }
+        .continue-button { background: var(--success); color: white; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h1>Vocabulary Level Test</h1></div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+        <div id="testContent"></div>
+        <div id="resultsContainer" class="hidden"></div>
+    </div>
+
+    <script>
+        const questions = [
+            { word: "Ameliorate", explanation: "Choose the phrase that best explains this word", options: [{ text: "To make something worse or more difficult", correct: false }, { text: "To make something better or improve it", correct: true }, { text: "To make something smaller or reduce it", correct: false }, { text: "To make something more complicated", correct: false }] },
+            { word: "Ephemeral", explanation: "Choose the phrase that best explains this word", options: [{ text: "Lasting for a very short time; temporary", correct: true }, { text: "Something that is very strong and durable", correct: false }, { text: "A type of artistic movement", correct: false }, { text: "A mineral or precious stone", correct: false }] },
+            { word: "Obfuscate", explanation: "Choose the phrase that best explains this word", options: [{ text: "To observe something carefully", correct: false }, { text: "To make something unclear or hard to understand", correct: true }, { text: "To organize something in order", correct: false }, { text: "To criticize someone harshly", correct: false }] },
+            { word: "Pragmatic", explanation: "Choose the phrase that best explains this word", options: [{ text: "Dealing with things in a practical, realistic way", correct: true }, { text: "Refusing to consider other viewpoints", correct: false }, { text: "Using too many difficult words", correct: false }, { text: "Being overly emotional about decisions", correct: false }] },
+            { word: "Serendipity", explanation: "Choose the phrase that best explains this word", options: [{ text: "Finding something good by accident or luck", correct: true }, { text: "A planned and calculated outcome", correct: false }, { text: "A feeling of deep sadness", correct: false }, { text: "A type of rare disease", correct: false }] },
+            { word: "Cogent", explanation: "Choose the phrase that best explains this word", options: [{ text: "Appealing strongly to the mind; compelling and convincing", correct: true }, { text: "Extremely difficult to understand", correct: false }, { text: "Related to thinking or awareness", correct: false }, { text: "Absent-minded or forgetful", correct: false }] },
+            { word: "Perspicacious", explanation: "Choose the phrase that best explains this word", options: [{ text: "Having keen insight and understanding; perceptive", correct: true }, { text: "Having good eyesight or vision", correct: false }, { text: "Being overly critical of others", correct: false }, { text: "Showing excessive enthusiasm", correct: false }] },
+            { word: "Prevaricate", explanation: "Choose the phrase that best explains this word", options: [{ text: "To speak or act evasively; to tell lies", correct: true }, { text: "To arrive earlier than expected", correct: false }, { text: "To prevent something from happening", correct: false }, { text: "To go before someone in a procession", correct: false }] },
+            { word: "Sanguine", explanation: "Choose the phrase that best explains this word", options: [{ text: "Optimistic and positive about the future", correct: true }, { text: "Showing signs of anger or aggression", correct: false }, { text: "Related to blood or bloodshed", correct: false }, { text: "Extremely cautious and fearful", correct: false }] },
+            { word: "Ubiquitous", explanation: "Choose the phrase that best explains this word", options: [{ text: "Extremely rare or hard to find", correct: false }, { text: "Present, appearing, or found everywhere", correct: true }, { text: "Very large and difficult to move", correct: false }, { text: "Causing discomfort or irritation", correct: false }] }
+        ];
+
+        let currentQuestion = 0; let score = 0; let answered = false;
+
+        function renderQuestion() {
+            const container = document.getElementById('testContent');
+            const q = questions[currentQuestion];
+            document.getElementById('progressFill').style.width = ((currentQuestion + 1) / questions.length * 100) + '%';
+
+            container.innerHTML = `
+                <div class="question-container">
+                    <p style="color: var(--text-muted); margin-bottom: 10px;">Question ${currentQuestion + 1} of ${questions.length}</p>
+                    <div class="word-main">${q.word}</div>
+                    <div class="word-label">${q.explanation}</div>
+                    <div class="options">
+                        ${q.options.map((opt, i) => `<div class="option" onclick="handleSelect(${i})" id="opt-${i}">${opt.text}</div>`).join('')}
+                    </div>
+                </div>`;
+            answered = false;
+        }
+
+        function handleSelect(index) {
+            if (answered) return;
+            answered = true;
+            const q = questions[currentQuestion];
+            q.options.forEach((opt, i) => {
+                const el = document.getElementById(`opt-${i}`);
+                if (opt.correct) el.classList.add('correct');
+                else if (i === index) el.classList.add('incorrect');
+                el.style.cursor = 'default';
+            });
+            if (q.options[index].correct) score += 5;
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) renderQuestion();
+                else showResults();
+            }, 1200);
+        }
+
+        function showResults() {
+            document.getElementById('testContent').classList.add('hidden');
+            const res = document.getElementById('resultsContainer');
+            let lvl = score >= 45 ? 'C1' : score >= 30 ? 'B1' : 'A1';
+            let cls = score >= 45 ? 'cefr-c' : score >= 30 ? 'cefr-b1' : 'cefr-a1';
+
+            res.innerHTML = `
+                <div class="results-container">
+                    <h2>Test Complete!</h2>
+                    <div class="score-circle">${score * 2}%</div>
+                    <div class="cefr-level ${cls}">${lvl}</div>
+                    <div class="btn-group">
+                        <button class="restart-button" onclick="location.reload()">Restart</button>
+                        <a href="https://player.yoscenario.com/3826-3926-GZuuDqkH7D4FGjQ5" class="continue-button" target="_self">Continue to Course</a>
+                    </div>
+                </div>`;
+            res.classList.remove('hidden');
+        }
+        renderQuestion();
+    </script>
+</body>
+</html>
